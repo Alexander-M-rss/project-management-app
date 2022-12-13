@@ -35,11 +35,7 @@ const Task = (props: ITaskProps) => {
           </div>
           <div className={classes.buttons}>
             <div className={classes.edit}>
-              <Button
-                icon={<EditOutlined />}
-                type={'text'}
-                onClick={() => console.log('edit task callback')}
-              />
+              <Button icon={<EditOutlined />} type={'text'} />
             </div>
             <div className={classes.delete}>
               <Button

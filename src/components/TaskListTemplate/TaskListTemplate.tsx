@@ -9,16 +9,19 @@ import {
 } from '@ant-design/icons';
 import { Input } from 'antd';
 import Task from 'components/TaskTemplate/Task';
-import { showDeleteModal } from 'store/modalsSlice';
+import { showCreateModal, showDeleteModal } from 'store/modalsSlice';
 import { useAppDispatch, useAppSelector } from 'store/hooks';
 import { updateColumn } from 'store/columnsSlice';
 import { Droppable } from 'react-beautiful-dnd';
+import CreateModal from 'components/modals/CreateModal';
+import { createTask } from 'store/tasksSlice';
 
 interface TaskListProps {
   title: string;
   id: string;
   token: string;
   boardId: string;
+  order: number;
 }
 
 const TaskListTemplate = (props: TaskListProps) => {
@@ -27,6 +30,7 @@ const TaskListTemplate = (props: TaskListProps) => {
   const [renameListStatus, setRenameListStatus] = useState(false);
   const [listName, setListName] = useState(props.title);
   const [listNameBeforeChange, setListNameBeforeChange] = useState(listName);
+  const columnId = props.id;
 
   return (
     <div className={classes.list}>
@@ -44,8 +48,8 @@ const TaskListTemplate = (props: TaskListProps) => {
             <div className={classes.list__delete}>
               <Button
                 icon={<PlusCircleOutlined style={{ color: '#fff' }} />}
-                onClick={() => console.log('add task callback')}
                 type={'link'}
+                onClick={() => dispatch(showCreateModal({ modalType: 'task', modalId: columnId }))}
               />
               <Button
                 icon={<DeleteFilled style={{ color: '#fff' }} />}
@@ -53,6 +57,23 @@ const TaskListTemplate = (props: TaskListProps) => {
                 onClick={() => dispatch(showDeleteModal({ id: props.id, type: 'column' }))}
               />
             </div>
+            <CreateModal
+              modalId={columnId}
+              type="task"
+              onCreate={({ title, description }) => {
+                dispatch(
+                  createTask({
+                    title: title,
+                    order: 0,
+                    description: description,
+                    userId: 0,
+                    users: [],
+                    boardId: props.boardId,
+                    columnId: columnId,
+                  })
+                );
+              }}
+            />
           </>
         ) : (
           <>

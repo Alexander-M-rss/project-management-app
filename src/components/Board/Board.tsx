@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import classes from './Board.module.css';
 import { Button } from 'antd';
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { DeleteOutlined, RollbackOutlined } from '@ant-design/icons';
 import TaskListTemplate from 'components/TaskListTemplate/TaskListTemplate';
 import CreateModal from 'components/modals/CreateModal';
 import CreateTaskTemplate from 'components/CreateTaskTemplate/CreateTaskTemplate';
@@ -40,7 +40,7 @@ const Board = () => {
   const navigate = useNavigate();
   const {
     isDeleteShown,
-    type,
+    modalType,
     id: colId,
     isInfoShown,
     title: titleInfo,
@@ -103,7 +103,7 @@ const Board = () => {
       callDeleteModal({
         onOk: () => {
           dispatch(hideDeleteModal());
-          switch (type) {
+          switch (modalType) {
             case 'board':
               dispatch(deleteBoard({ token, id: boardId }));
               break;
@@ -133,7 +133,7 @@ const Board = () => {
         },
       });
     }
-  }, [colId, boardId, dispatch, isDeleteShown, token, type]);
+  }, [colId, boardId, dispatch, isDeleteShown, token, modalType]);
 
   useEffect(() => {
     if (isDeleted) {
@@ -186,24 +186,6 @@ const Board = () => {
     }
   }, [descInfo, dispatch, isInfoShown, titleInfo]);
 
-  useEffect(() => {
-    if (columns) {
-      dispatch(resetTasks());
-      columns.forEach((column) =>
-        dispatch(getTasks({ token, boardId: _id, columnId: column._id }))
-      );
-    }
-  }, [_id, columns, dispatch, token]);
-
-  useEffect(() => {
-    if (tasksIsUpdateNeeded) {
-      dispatch(resetTasks());
-      columns.forEach((column) =>
-        dispatch(getTasks({ token, boardId: _id, columnId: column._id }))
-      );
-    }
-  }, [_id, columns, dispatch, tasksIsUpdateNeeded, token]);
-
   return (
     <div className={classes.board}>
       {contextHolder}
@@ -219,9 +201,12 @@ const Board = () => {
             <div className={classes.buttons}>
               <div className={classes.edit}>
                 <Button
-                  icon={<EditOutlined />}
+                  icon={<RollbackOutlined />}
                   type={'primary'}
-                  onClick={() => console.log('edit board callback')}
+                  onClick={() => {
+                    dispatch(resetBoard());
+                    navigate('/');
+                  }}
                 />
               </div>
               <div className={classes.delete}>
@@ -237,13 +222,14 @@ const Board = () => {
           <div className={classes.list}>
             {!colIsLoading ? (
               <DragDropContext onDragEnd={onDragEnd}>
-                {columns.map(({ _id, title }) => (
+                {columns.map(({ _id, title, order }) => (
                   <TaskListTemplate
                     key={_id}
                     title={title}
                     id={_id}
                     token={token}
                     boardId={boardId}
+                    order={order}
                   />
                 ))}
               </DragDropContext>
@@ -253,22 +239,18 @@ const Board = () => {
             {!colIsLoading ? (
               <CreateTaskTemplate
                 onClick={() => {
-                  dispatch(showCreateModal());
+                  dispatch(showCreateModal({ modalType: 'column' }));
                 }}
               />
             ) : null}
           </div>
           <CreateModal
-            type="Column"
+            type="column"
             onCreate={({ title }) => {
               dispatch(
                 createColumn({
-                  token,
-                  column: {
-                    title,
-                    order: 1,
-                  },
-                  boardId: _id,
+                  boardId,
+                  column: { title },
                 })
               );
             }}

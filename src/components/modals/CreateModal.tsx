@@ -9,14 +9,18 @@ interface IValues {
   description: string;
 }
 
-const CreateModal = ({
-  type,
-  onCreate: onCreateCB,
-}: {
+interface ICreateModalProps {
   type: string;
   onCreate: (values: IValues) => void;
-}) => {
-  const { isCreateShown } = useAppSelector((state) => state.modals);
+  modalId?: string;
+}
+
+const CreateModal = ({ type, onCreate: onCreateCB, modalId }: ICreateModalProps) => {
+  const {
+    isCreateShown,
+    modalType,
+    modalId: storeModalId,
+  } = useAppSelector((state) => state.modals);
   const dispatch = useAppDispatch();
   const [form] = Form.useForm<IValues>();
 
@@ -37,6 +41,14 @@ const CreateModal = ({
       });
   };
 
+  if (type !== modalType) {
+    return null;
+  }
+
+  if ([storeModalId, modalId].every(Boolean) && storeModalId !== modalId) {
+    return null;
+  }
+
   return (
     <Modal
       title={`Create ${type}`}
@@ -54,7 +66,7 @@ const CreateModal = ({
         >
           <Input placeholder={`${type} Title`} allowClear />
         </Form.Item>
-        {type !== 'Column' ? (
+        {type !== 'column' ? (
           <Form.Item
             name="description"
             label="Description"
