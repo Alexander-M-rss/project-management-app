@@ -30,7 +30,7 @@ const Board = () => {
   const { columns, colIsLoading, colStatusCode, colErrMsg, isUpdateNeeded } = useAppSelector(
     (state) => state.columns
   );
-  const { tasks, tasksIsUpdateNeeded } = useAppSelector((state) => state.tasks);
+  const { tasks } = useAppSelector((state) => state.tasks);
 
   const { token } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
@@ -66,6 +66,14 @@ const Board = () => {
 
   useEffect(() => {
     if (!token || !_id) return;
+
+    dispatch(getColumns({ token, boardId: _id }));
+    return;
+  }, [_id, dispatch, token]);
+
+  useEffect(() => {
+    if (!token || !_id || !isUpdateNeeded) return;
+
     dispatch(getColumns({ token, boardId: _id }));
     return;
   }, [_id, dispatch, token, isUpdateNeeded]);
@@ -143,7 +151,17 @@ const Board = () => {
   }, [dispatch, isDeleted, navigate]);
 
   useEffect(() => {
+    if (columns) {
+      dispatch(resetTasks());
+      columns.forEach((column) =>
+        dispatch(getTasks({ token, boardId: _id, columnId: column._id }))
+      );
+    }
+  }, [_id, columns, dispatch, token]);
+
+  useEffect(() => {
     if (isUpdateNeeded) {
+      dispatch(resetTasks);
       dispatch(resetColumns());
     }
   }, [dispatch, isUpdateNeeded, navigate]);
