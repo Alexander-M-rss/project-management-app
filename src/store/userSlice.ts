@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { USERS_URL } from './apiUrls';
+import { ISignUpOpt } from './authSlice';
 import { IUser } from './usersSlice';
 
 interface IUserState extends IUserResp {
@@ -30,7 +31,9 @@ export interface IUserReq {
 }
 
 export interface IPutUserReq extends IUserReq {
-  user: Omit<IUser, '_id'>;
+  token: string;
+  id: string;
+  user: ISignUpOpt;
 }
 
 export const getUser = createAsyncThunk<IUserResp, IUserReq>(
@@ -85,7 +88,7 @@ export const putUser = createAsyncThunk<IUserResp, IPutUserReq>(
           Accept: 'application/json',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name: user.name, login: user.login, password: '' }),
+        body: JSON.stringify({ name: user.name, login: user.login, password: user.password }),
       });
 
       const data = (await resp.json()) as IUserResp;
